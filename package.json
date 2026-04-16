@@ -1,0 +1,32 @@
+{
+  "name": "fatina-d-oro",
+  "version": "0.1.0",
+  "description": "Fatina d'Oro - Phaser game inspired by Flappy Bird",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:fairy": "vite --mode fairy",
+    "build": "tsc --noEmit && vite build",
+    "build:gh": "GITHUB_PAGES=1 tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "phaser",
+    "game",
+    "typescript",
+    "vite"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.1.7"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  }
+}

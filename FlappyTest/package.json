@@ -1,0 +1,19 @@
+{
+  "name": "flappytest",
+  "version": "1.0.0",
+  "description": "FlappyTest — empty Node starter with Phaser. Use Node via .nvmrc (local deps in node_modules, like a venv).",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  }
+}
