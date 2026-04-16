@@ -1,10 +1,12 @@
 import Phaser from "phaser";
-import { GAME_HEIGHT, GAME_WIDTH } from "../config";
+import { GAME_HEIGHT, GAME_WIDTH, GAMEPLAY } from "../config";
 import { resumeWebAudioFromUserGesture } from "../resumeWebAudio";
 import { ScoreStore } from "../state/ScoreStore";
+import { ParallaxBackgroundLayers } from "../background/ParallaxBackgroundLayers";
 
 export class MenuScene extends Phaser.Scene {
   private hasNavigated = false;
+  private parallax?: ParallaxBackgroundLayers;
 
   constructor() {
     super("MenuScene");
@@ -13,34 +15,53 @@ export class MenuScene extends Phaser.Scene {
   create(): void {
     this.hasNavigated = false;
 
-    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background");
+    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background").setDepth(-6);
+    this.parallax = new ParallaxBackgroundLayers(this, [
+      "backgroundParallax2",
+      "backgroundParallax3",
+      "backgroundParallax4",
+      "backgroundParallax5",
+    ]);
 
-    this.add.text(GAME_WIDTH / 2, 200, "Fatina d'Oro", {
-      fontSize: "58px",
-      fontStyle: "bold",
-      color: "#ffe28a",
-      stroke: "#8a5b00",
-      strokeThickness: 8,
-      align: "center",
-    }).setOrigin(0.5);
+    this.add
+      .text(GAME_WIDTH / 2, 200, "Fatina d'Oro", {
+        fontSize: "58px",
+        fontStyle: "bold",
+        color: "#ffe28a",
+        stroke: "#8a5b00",
+        strokeThickness: 8,
+        align: "center",
+      })
+      .setOrigin(0.5)
+      .setDepth(20);
 
-    this.add.text(GAME_WIDTH / 2, 330, "Tocca o premi SPAZIO per volare", {
-      fontSize: "26px",
-      color: "#ffffff",
-    }).setOrigin(0.5);
+    this.add
+      .text(GAME_WIDTH / 2, 330, "Tocca o premi SPAZIO per volare", {
+        fontSize: "26px",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5)
+      .setDepth(20);
 
-    this.add.text(GAME_WIDTH / 2, 390, `Miglior punteggio: ${ScoreStore.getBestScore()}`, {
-      fontSize: "28px",
-      color: "#fef4be",
-    }).setOrigin(0.5);
+    this.add
+      .text(GAME_WIDTH / 2, 390, `Miglior punteggio: ${ScoreStore.getBestScore()}`, {
+        fontSize: "28px",
+        color: "#fef4be",
+      })
+      .setOrigin(0.5)
+      .setDepth(20);
 
-    const start = this.add.text(GAME_WIDTH / 2, 500, "INIZIA", {
-      fontSize: "44px",
-      fontStyle: "bold",
-      color: "#ffffff",
-      backgroundColor: "#e38a2d",
-      padding: { x: 22, y: 10 },
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const start = this.add
+      .text(GAME_WIDTH / 2, 500, "INIZIA", {
+        fontSize: "44px",
+        fontStyle: "bold",
+        color: "#ffffff",
+        backgroundColor: "#e38a2d",
+        padding: { x: 22, y: 10 },
+      })
+      .setOrigin(0.5)
+      .setDepth(22)
+      .setInteractive({ useHandCursor: true });
 
     this.tweens.add({
       targets: start,
@@ -62,5 +83,10 @@ export class MenuScene extends Phaser.Scene {
     };
     start.on("pointerdown", goToGame);
     this.input.keyboard?.once("keydown-SPACE", goToGame);
+  }
+
+  update(_time: number, delta: number): void {
+    const speed = GAMEPLAY.basePipeSpeed * 0.6;
+    this.parallax?.tick(speed, delta);
   }
 }

@@ -2,6 +2,10 @@ export const IMAGE_ASSETS = {
   fairy: "assets/images/fatina-volante2.png",
   pipe: "assets/images/SombreroAlto.png",
   background: "assets/bg/1.png",
+  backgroundParallax2: "assets/bg/2.png",
+  backgroundParallax3: "assets/bg/3.png",
+  backgroundParallax4: "assets/bg/4.png",
+  backgroundParallax5: "assets/bg/5.png",
   ground: "assets/images/ground.png",
 } as const;
 

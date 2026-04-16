@@ -12,6 +12,7 @@ import { InputController } from "../input/InputController";
 import { resumeWebAudioFromUserGesture } from "../resumeWebAudio";
 import { DifficultySystem } from "../systems/Difficulty";
 import { Spawner } from "../systems/Spawner";
+import { ParallaxBackgroundLayers } from "../background/ParallaxBackgroundLayers";
 
 export class GameScene extends Phaser.Scene {
   private fairy!: Phaser.Physics.Arcade.Sprite;
@@ -26,6 +27,7 @@ export class GameScene extends Phaser.Scene {
   private gameStartedAt = 0;
   private isDead = false;
   private music?: Phaser.Sound.BaseSound;
+  private parallax?: ParallaxBackgroundLayers;
 
   constructor() {
     super("GameScene");
@@ -38,8 +40,14 @@ export class GameScene extends Phaser.Scene {
     this.spawnTimer = 0;
     this.music?.stop();
 
-    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background");
-    this.add.text(16, 16, "Fatina d'Oro", { fontSize: "24px", color: "#ffffff" });
+    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background").setDepth(-6);
+    this.parallax = new ParallaxBackgroundLayers(this, [
+      "backgroundParallax2",
+      "backgroundParallax3",
+      "backgroundParallax4",
+      "backgroundParallax5",
+    ]);
+    this.add.text(16, 16, "Fatina d'Oro", { fontSize: "24px", color: "#ffffff" }).setDepth(20);
 
     this.topPipes = this.physics.add.group();
     this.bottomPipes = this.physics.add.group();
@@ -49,17 +57,21 @@ export class GameScene extends Phaser.Scene {
     this.applyFairyHitbox();
     this.fairy.setCollideWorldBounds(false);
     this.fairy.play("fairy-flap");
+    this.fairy.setDepth(15);
 
     this.spawner = new Spawner(this, this.topPipes, this.bottomPipes);
     this.inputController = new InputController(this);
     this.inputController.bind();
 
-    this.scoreText = this.add.text(GAME_WIDTH / 2, 32, "0", {
-      fontSize: "52px",
-      color: "#fff7cc",
-      stroke: "#7a5000",
-      strokeThickness: 6,
-    }).setOrigin(0.5, 0);
+    this.scoreText = this.add
+      .text(GAME_WIDTH / 2, 32, "0", {
+        fontSize: "52px",
+        color: "#fff7cc",
+        stroke: "#7a5000",
+        strokeThickness: 6,
+      })
+      .setOrigin(0.5, 0)
+      .setDepth(25);
 
     this.physics.add.overlap(
       this.fairy,
@@ -84,6 +96,8 @@ export class GameScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       this.spawner.clear();
       this.inputController.destroy();
+      this.parallax?.destroy();
+      this.parallax = undefined;
     });
   }
 
@@ -110,6 +124,8 @@ export class GameScene extends Phaser.Scene {
     const elapsed = this.time.now - this.gameStartedAt;
     const speed = GAMEPLAY.basePipeSpeed + this.difficulty.getSpeedBonus(elapsed);
     const gap = this.difficulty.getPipeGap(elapsed);
+
+    this.parallax?.tick(speed, delta);
 
     if (this.spawnTimer >= GAMEPLAY.pipeSpawnMs) {
       this.spawnTimer = 0;
