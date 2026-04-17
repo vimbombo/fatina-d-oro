@@ -35,8 +35,9 @@ export class GameScene extends Phaser.Scene {
   private score = 0;
   private gameStartedAt = 0;
   private isDead = false;
-  private music?: Phaser.Sound.BaseSound;
+  private music?: Phaser.Sound.WebAudioSound | Phaser.Sound.HTML5AudioSound;
   private clip1Sound?: Phaser.Sound.BaseSound;
+  private musicVolumeBeforeClip1?: number;
   private parallax?: ParallaxBackgroundLayers;
 
   constructor() {
@@ -118,8 +119,10 @@ export class GameScene extends Phaser.Scene {
 
     this.events.once("shutdown", () => {
       this.spawner.clear();
+      this.restoreMusicVolumeAfterClip1();
       this.clip1Sound?.stop();
       this.clip1Sound = undefined;
+      this.musicVolumeBeforeClip1 = undefined;
       this.inputController.destroy();
       this.parallax?.destroy();
       this.parallax = undefined;
@@ -193,6 +196,7 @@ export class GameScene extends Phaser.Scene {
     } catch {
       // Ignore optional audio errors when assets are missing.
     }
+    this.restoreMusicVolumeAfterClip1();
     this.music?.stop();
     this.clip1Sound?.stop();
     this.cameras.main.shake(180, 0.01);
@@ -216,12 +220,28 @@ export class GameScene extends Phaser.Scene {
           this.clip1Sound = this.sound.add("clip1", { volume: 0.7 });
         }
         if (!this.clip1Sound.isPlaying) {
+          if (this.music && this.musicVolumeBeforeClip1 === undefined) {
+            this.musicVolumeBeforeClip1 = this.music.volume;
+            this.music.setVolume(this.music.volume * 0.1);
+          }
+          // Re-register each play: `.once` on create only fired for the first playback.
+          this.clip1Sound.once(Phaser.Sound.Events.COMPLETE, () => {
+            this.restoreMusicVolumeAfterClip1();
+          });
           this.clip1Sound.play();
         }
       }
     } catch {
       // Ignore optional audio errors when assets are missing.
     }
+  }
+
+  private restoreMusicVolumeAfterClip1(): void {
+    if (!this.music || this.musicVolumeBeforeClip1 === undefined) {
+      return;
+    }
+    this.music.setVolume(this.musicVolumeBeforeClip1);
+    this.musicVolumeBeforeClip1 = undefined;
   }
 
   private addScore(points: number): void {
@@ -281,7 +301,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     try {
-      this.music = this.sound.add("music", { loop: true, volume: MUSIC_VOLUME });
+      this.music = this.sound.add("music", {
+        loop: true,
+        volume: MUSIC_VOLUME,
+      }) as Phaser.Sound.WebAudioSound | Phaser.Sound.HTML5AudioSound;
       this.music.play();
     } catch (e) {
       this.music = undefined;
