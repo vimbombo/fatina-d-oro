@@ -6,7 +6,6 @@ export const IMAGE_ASSETS = {
   backgroundParallax3: "assets/bg/3.png",
   backgroundParallax4: "assets/bg/4.png",
   backgroundParallax5: "assets/bg/5.png",
-  ground: "assets/images/ground.png",
 } as const;
 
 export const AUDIO_ASSETS = {
