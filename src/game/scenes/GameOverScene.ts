@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { GAME_HEIGHT, GAME_WIDTH } from "../config";
+import { GAME_HEIGHT, GAME_WIDTH, START_SCENE_MUSIC_VOLUME } from "../config";
+import { resumeWebAudioFromUserGesture } from "../resumeWebAudio";
 import { ScoreStore } from "../state/ScoreStore";
 
 type Data = {
@@ -8,6 +9,7 @@ type Data = {
 
 export class GameOverScene extends Phaser.Scene {
   private hasNavigated = false;
+  private music?: Phaser.Sound.BaseSound;
 
   constructor() {
     super("GameOverScene");
@@ -15,11 +17,17 @@ export class GameOverScene extends Phaser.Scene {
 
   create(data: Data): void {
     this.hasNavigated = false;
+    this.music?.stop();
+    this.music = undefined;
 
     const score = data.score ?? 0;
     const best = ScoreStore.saveBestScore(score);
 
     this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.25).setOrigin(0, 0).setDepth(10);
+
+    void resumeWebAudioFromUserGesture(this).then(() => {
+      this.tryStartMusic();
+    });
 
     this.add
       .text(GAME_WIDTH / 2, 220, "Game Over", {
@@ -75,6 +83,8 @@ export class GameOverScene extends Phaser.Scene {
         return;
       }
       this.hasNavigated = true;
+      this.music?.stop();
+      this.music = undefined;
       this.scene.stop("GameOverScene");
       this.scene.stop("GameScene");
       this.scene.start("GameScene");
@@ -84,6 +94,8 @@ export class GameOverScene extends Phaser.Scene {
         return;
       }
       this.hasNavigated = true;
+      this.music?.stop();
+      this.music = undefined;
       this.scene.stop("GameOverScene");
       this.scene.stop("GameScene");
       this.scene.start("MenuScene");
@@ -94,9 +106,29 @@ export class GameOverScene extends Phaser.Scene {
         return;
       }
       this.hasNavigated = true;
+      this.music?.stop();
+      this.music = undefined;
       this.scene.stop("GameOverScene");
       this.scene.stop("GameScene");
       this.scene.start("GameScene");
     });
+
+    this.events.once("shutdown", () => {
+      this.music?.stop();
+      this.music = undefined;
+    });
+  }
+
+  private tryStartMusic(): void {
+    if (!this.cache.audio.exists("startmusic")) {
+      return;
+    }
+
+    try {
+      this.music = this.sound.add("startmusic", { loop: true, volume: START_SCENE_MUSIC_VOLUME });
+      this.music.play();
+    } catch {
+      this.music = undefined;
+    }
   }
 }
