@@ -79,6 +79,20 @@ export class BootScene extends Phaser.Scene {
       g.destroy();
     }
 
+    if (!this.textures.exists("vinyl")) {
+      const g = this.add.graphics();
+      g.fillStyle(0x141414, 1);
+      g.fillCircle(24, 24, 24);
+      g.fillStyle(0x262626, 1);
+      g.fillCircle(24, 24, 16);
+      g.fillStyle(0x8d1e1e, 1);
+      g.fillCircle(24, 24, 7);
+      g.fillStyle(0xf5f1c6, 1);
+      g.fillCircle(24, 24, 2);
+      g.generateTexture("vinyl", 48, 48);
+      g.destroy();
+    }
+
     if (this.anims.exists("fairy-flap")) {
       this.anims.remove("fairy-flap");
     }

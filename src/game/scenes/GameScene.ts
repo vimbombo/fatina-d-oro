@@ -22,6 +22,7 @@ export class GameScene extends Phaser.Scene {
   private fairy!: Phaser.Physics.Arcade.Sprite;
   private topPipes!: Phaser.Physics.Arcade.Group;
   private bottomPipes!: Phaser.Physics.Arcade.Group;
+  private discs!: Phaser.Physics.Arcade.Group;
   private scoreText!: Phaser.GameObjects.Text;
   private revealLineTexts: Phaser.GameObjects.Text[] = [];
   private revealLineRanges: Array<{ start: number; end: number }> = [];
@@ -35,6 +36,7 @@ export class GameScene extends Phaser.Scene {
   private gameStartedAt = 0;
   private isDead = false;
   private music?: Phaser.Sound.BaseSound;
+  private clip1Sound?: Phaser.Sound.BaseSound;
   private parallax?: ParallaxBackgroundLayers;
 
   constructor() {
@@ -63,6 +65,7 @@ export class GameScene extends Phaser.Scene {
 
     this.topPipes = this.physics.add.group();
     this.bottomPipes = this.physics.add.group();
+    this.discs = this.physics.add.group();
 
     this.fairy = this.physics.add.sprite(130, GAME_HEIGHT / 2, "fairy");
     this.fairy.setOrigin(0.5, 0.5);
@@ -71,7 +74,7 @@ export class GameScene extends Phaser.Scene {
     this.fairy.play("fairy-flap");
     this.fairy.setDepth(15);
 
-    this.spawner = new Spawner(this, this.topPipes, this.bottomPipes);
+    this.spawner = new Spawner(this, this.topPipes, this.bottomPipes, this.discs);
     this.inputController = new InputController(this);
     this.inputController.bind();
 
@@ -100,6 +103,13 @@ export class GameScene extends Phaser.Scene {
       undefined,
       this,
     );
+    this.physics.add.overlap(
+      this.fairy,
+      this.discs,
+      (_fairy, disc) => this.collectDisc(disc as Phaser.GameObjects.GameObject),
+      undefined,
+      this,
+    );
 
     void resumeWebAudioFromUserGesture(this).then(() => {
       this.tryStartMusic();
@@ -108,6 +118,8 @@ export class GameScene extends Phaser.Scene {
 
     this.events.once("shutdown", () => {
       this.spawner.clear();
+      this.clip1Sound?.stop();
+      this.clip1Sound = undefined;
       this.inputController.destroy();
       this.parallax?.destroy();
       this.parallax = undefined;
@@ -152,9 +164,7 @@ export class GameScene extends Phaser.Scene {
 
     const newPoints = this.spawner.update(speed, this.fairy.x);
     if (newPoints > 0) {
-      this.score += newPoints;
-      this.scoreText.setText(String(this.score));
-      this.updateBackgroundRevealFromScore();
+      this.addScore(newPoints);
       try {
         if (!AudioSettingsStore.isSfxMuted() && this.cache.audio.exists("point")) {
           this.sound.play("point", { volume: 0.45 });
@@ -162,12 +172,6 @@ export class GameScene extends Phaser.Scene {
       } catch {
         // Ignore optional audio errors when assets are missing.
       }
-      this.tweens.add({
-        targets: this.scoreText,
-        scale: 1.2,
-        duration: 100,
-        yoyo: true,
-      });
     }
 
     if (this.fairy.y < -30 || this.fairy.y > GAME_HEIGHT + 20) {
@@ -190,10 +194,66 @@ export class GameScene extends Phaser.Scene {
       // Ignore optional audio errors when assets are missing.
     }
     this.music?.stop();
+    this.clip1Sound?.stop();
     this.cameras.main.shake(180, 0.01);
     this.time.delayedCall(450, () => {
       this.scene.launch("GameOverScene", { score: this.score });
       this.scene.pause();
+    });
+  }
+
+  private collectDisc(discBody: Phaser.GameObjects.GameObject): void {
+    const disc = discBody as Phaser.Physics.Arcade.Image;
+    const popupX = disc.x;
+    const popupY = disc.y;
+    disc.disableBody(true, true);
+    this.addScore(5);
+    this.showScorePopup("+5", popupX, popupY);
+
+    try {
+      if (!AudioSettingsStore.isSfxMuted() && this.cache.audio.exists("clip1")) {
+        if (!this.clip1Sound) {
+          this.clip1Sound = this.sound.add("clip1", { volume: 0.7 });
+        }
+        if (!this.clip1Sound.isPlaying) {
+          this.clip1Sound.play();
+        }
+      }
+    } catch {
+      // Ignore optional audio errors when assets are missing.
+    }
+  }
+
+  private addScore(points: number): void {
+    this.score += points;
+    this.scoreText.setText(String(this.score));
+    this.updateBackgroundRevealFromScore();
+    this.tweens.add({
+      targets: this.scoreText,
+      scale: 1.2,
+      duration: 100,
+      yoyo: true,
+    });
+  }
+
+  private showScorePopup(label: string, x: number, y: number): void {
+    const popup = this.add
+      .text(x, y, label, {
+        fontSize: "34px",
+        fontStyle: "bold",
+        color: "#ffe17a",
+        stroke: "#3a2800",
+        strokeThickness: 5,
+      })
+      .setOrigin(0.5)
+      .setDepth(30);
+    this.tweens.add({
+      targets: popup,
+      y: y - 60,
+      alpha: 0,
+      duration: 520,
+      ease: "Cubic.easeOut",
+      onComplete: () => popup.destroy(),
     });
   }
 

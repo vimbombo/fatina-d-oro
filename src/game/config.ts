@@ -28,9 +28,12 @@ export const GAMEPLAY = {
   basePipeGap: 235,
   minPipeGap: 170,
   pipeSpawnMs: 1500,
+  discEveryPipesBase: 8,
+  discEveryPipesJitter: 2,
+  discVerticalMarginPx: 26,
   difficultyIntervalMs: 11000,
   maxSpeedBonus: 115,
-  revealPointsPerChar: 1,
+  revealPointsPerChar: 10,
 };
 
 export const BACKGROUND_REVEAL_VISUALS = {

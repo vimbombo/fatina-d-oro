@@ -1,20 +1,26 @@
 import Phaser from "phaser";
-import { GAME_HEIGHT, GAME_WIDTH, PIPE_COLLIDER_WIDTH } from "../config";
+import { GAME_HEIGHT, GAME_WIDTH, GAMEPLAY, PIPE_COLLIDER_WIDTH } from "../config";
 
 type PipePair = {
   top: Phaser.Physics.Arcade.Image;
   bottom: Phaser.Physics.Arcade.Image;
+  disc?: Phaser.Physics.Arcade.Image;
   scored: boolean;
 };
 
 export class Spawner {
   private pairs: PipePair[] = [];
+  private spawnedPipesCount = 0;
+  private nextDiscAtPipeCount = 0;
 
   constructor(
     private scene: Phaser.Scene,
     private topGroup: Phaser.Physics.Arcade.Group,
     private bottomGroup: Phaser.Physics.Arcade.Group,
-  ) {}
+    private discGroup: Phaser.Physics.Arcade.Group,
+  ) {
+    this.nextDiscAtPipeCount = this.randomDiscThreshold(this.spawnedPipesCount);
+  }
 
   spawn(gap: number, speed: number): void {
     const centerY = Phaser.Math.Between(220, GAME_HEIGHT - 220);
@@ -49,7 +55,26 @@ export class Spawner {
 
     top.setVelocity(-speed, 0);
     bottom.setVelocity(-speed, 0);
-    this.pairs.push({ top, bottom, scored: false });
+    this.spawnedPipesCount += 1;
+    const shouldSpawnDisc = this.spawnedPipesCount >= this.nextDiscAtPipeCount;
+
+    let disc: Phaser.Physics.Arcade.Image | undefined;
+    if (shouldSpawnDisc) {
+      const yMin = topY + GAMEPLAY.discVerticalMarginPx;
+      const yMax = bottomY - GAMEPLAY.discVerticalMarginPx;
+      const discY = yMin < yMax ? Phaser.Math.Between(yMin, yMax) : centerY;
+      disc = this.scene.physics.add
+        .image(GAME_WIDTH + 60, discY, "vinyl")
+        .setOrigin(0.5, 0.5)
+        .setImmovable(true);
+      this.discGroup.add(disc);
+      const discBody = disc.body as Phaser.Physics.Arcade.Body | null;
+      discBody?.setAllowGravity(false);
+      disc.setVelocity(-speed, 0);
+      this.nextDiscAtPipeCount = this.randomDiscThreshold(this.spawnedPipesCount);
+    }
+
+    this.pairs.push({ top, bottom, disc, scored: false });
   }
 
   update(speed: number, fairyX: number): number {
@@ -57,6 +82,7 @@ export class Spawner {
     this.pairs = this.pairs.filter((pair) => {
       pair.top.setVelocityX(-speed);
       pair.bottom.setVelocityX(-speed);
+      pair.disc?.setVelocityX(-speed);
 
       if (!pair.scored && pair.top.x < fairyX) {
         pair.scored = true;
@@ -67,6 +93,7 @@ export class Spawner {
       if (offscreen) {
         pair.top.destroy();
         pair.bottom.destroy();
+        pair.disc?.destroy();
       }
       return !offscreen;
     });
@@ -77,7 +104,16 @@ export class Spawner {
     this.pairs.forEach((pair) => {
       pair.top.destroy();
       pair.bottom.destroy();
+      pair.disc?.destroy();
     });
     this.pairs = [];
+    this.spawnedPipesCount = 0;
+    this.nextDiscAtPipeCount = this.randomDiscThreshold(this.spawnedPipesCount);
+  }
+
+  private randomDiscThreshold(fromPipeCount: number): number {
+    const minPipes = GAMEPLAY.discEveryPipesBase - GAMEPLAY.discEveryPipesJitter;
+    const maxPipes = GAMEPLAY.discEveryPipesBase + GAMEPLAY.discEveryPipesJitter;
+    return fromPipeCount + Phaser.Math.Between(minPipes, maxPipes);
   }
 }
