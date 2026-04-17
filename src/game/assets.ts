@@ -10,7 +10,7 @@ export const IMAGE_ASSETS = {
 
 export const AUDIO_ASSETS = {
   flap: "assets/audio/flap.mp3",
-  point: "assets/audio/point.ogg",
+  point: "assets/audio/point2.mp3",
   hit: "assets/audio/gameover2.mp3",
   music: "assets/audio/CanzoneVerzino.ogg",
   startmusic: "assets/audio/Set1.ogg"

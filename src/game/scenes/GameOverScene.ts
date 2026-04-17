@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH, START_SCENE_MUSIC_VOLUME } from "../config";
 import { resumeWebAudioFromUserGesture } from "../resumeWebAudio";
+import { AudioSettingsStore } from "../state/AudioSettingsStore";
 import { ScoreStore } from "../state/ScoreStore";
 
 type Data = {
@@ -120,6 +121,9 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   private tryStartMusic(): void {
+    if (AudioSettingsStore.isMusicMuted()) {
+      return;
+    }
     if (!this.cache.audio.exists("startmusic")) {
       return;
     }

@@ -10,6 +10,7 @@ import {
 } from "../config";
 import { InputController } from "../input/InputController";
 import { resumeWebAudioFromUserGesture } from "../resumeWebAudio";
+import { AudioSettingsStore } from "../state/AudioSettingsStore";
 import { DifficultySystem } from "../systems/Difficulty";
 import { Spawner } from "../systems/Spawner";
 import { ParallaxBackgroundLayers } from "../background/ParallaxBackgroundLayers";
@@ -114,7 +115,7 @@ export class GameScene extends Phaser.Scene {
       this.fairy.setVelocityY(GAMEPLAY.flapVelocity);
       this.fairy.setAngle(-15);
       try {
-        if (this.cache.audio.exists("flap")) {
+        if (!AudioSettingsStore.isSfxMuted() && this.cache.audio.exists("flap")) {
           this.sound.play("flap", { volume: 0.5 });
         }
       } catch {
@@ -141,7 +142,7 @@ export class GameScene extends Phaser.Scene {
       this.score += newPoints;
       this.scoreText.setText(String(this.score));
       try {
-        if (this.cache.audio.exists("point")) {
+        if (!AudioSettingsStore.isSfxMuted() && this.cache.audio.exists("point")) {
           this.sound.play("point", { volume: 0.45 });
         }
       } catch {
@@ -168,7 +169,7 @@ export class GameScene extends Phaser.Scene {
     this.fairy.setVelocity(0, 0);
     this.physics.pause();
     try {
-      if (this.cache.audio.exists("hit")) {
+      if (!AudioSettingsStore.isSfxMuted() && this.cache.audio.exists("hit")) {
         this.sound.play("hit", { volume: 0.6 });
       }
     } catch {
@@ -195,6 +196,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private tryStartMusic(): void {
+    if (AudioSettingsStore.isMusicMuted()) {
+      return;
+    }
     if (!this.cache.audio.exists("music")) {
       if (import.meta.env.DEV) {
         console.warn("[audio] 'music' non in cache (file non caricato o load error).");

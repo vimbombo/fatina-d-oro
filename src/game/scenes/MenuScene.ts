@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH, GAMEPLAY, START_SCENE_MUSIC_VOLUME } from "../config";
 import { resumeWebAudioFromUserGesture } from "../resumeWebAudio";
+import { AudioSettingsStore } from "../state/AudioSettingsStore";
 import { ScoreStore } from "../state/ScoreStore";
 import { ParallaxBackgroundLayers } from "../background/ParallaxBackgroundLayers";
 
@@ -69,6 +70,26 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(22)
       .setInteractive({ useHandCursor: true });
+    const musicToggle = this.add
+      .text(GAME_WIDTH / 2 - 110, GAME_HEIGHT - 42, "", {
+        fontSize: "20px",
+        color: "#ffffff",
+        backgroundColor: "#36576f",
+        padding: { x: 10, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setDepth(22)
+      .setInteractive({ useHandCursor: true });
+    const sfxToggle = this.add
+      .text(GAME_WIDTH / 2 + 110, GAME_HEIGHT - 42, "", {
+        fontSize: "20px",
+        color: "#ffffff",
+        backgroundColor: "#36576f",
+        padding: { x: 10, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setDepth(22)
+      .setInteractive({ useHandCursor: true });
 
     this.tweens.add({
       targets: start,
@@ -81,6 +102,28 @@ export class MenuScene extends Phaser.Scene {
 
     void resumeWebAudioFromUserGesture(this).then(() => {
       this.tryStartMusic();
+    });
+
+    const refreshAudioButtons = () => {
+      musicToggle.setText(AudioSettingsStore.isMusicMuted() ? "Musica: OFF" : "Musica: ON");
+      sfxToggle.setText(AudioSettingsStore.isSfxMuted() ? "Suoni: OFF" : "Suoni: ON");
+    };
+    refreshAudioButtons();
+
+    musicToggle.on("pointerdown", () => {
+      const muted = AudioSettingsStore.toggleMusicMuted();
+      if (muted) {
+        this.music?.stop();
+        this.music = undefined;
+      } else {
+        this.tryStartMusic();
+      }
+      refreshAudioButtons();
+    });
+
+    sfxToggle.on("pointerdown", () => {
+      AudioSettingsStore.toggleSfxMuted();
+      refreshAudioButtons();
     });
 
     const goToGame = () => {
@@ -109,6 +152,9 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private tryStartMusic(): void {
+    if (AudioSettingsStore.isMusicMuted()) {
+      return;
+    }
     if (!this.cache.audio.exists("startmusic")) {
       return;
     }
