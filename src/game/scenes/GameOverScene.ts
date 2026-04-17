@@ -1,7 +1,6 @@
 import Phaser from "phaser";
-import { GAMEPLAY, GAME_HEIGHT, GAME_WIDTH } from "../config";
+import { GAME_HEIGHT, GAME_WIDTH } from "../config";
 import { ScoreStore } from "../state/ScoreStore";
-import { ParallaxBackgroundLayers } from "../background/ParallaxBackgroundLayers";
 
 type Data = {
   score?: number;
@@ -9,7 +8,6 @@ type Data = {
 
 export class GameOverScene extends Phaser.Scene {
   private hasNavigated = false;
-  private parallax?: ParallaxBackgroundLayers;
 
   constructor() {
     super("GameOverScene");
@@ -21,21 +19,7 @@ export class GameOverScene extends Phaser.Scene {
     const score = data.score ?? 0;
     const best = ScoreStore.saveBestScore(score);
 
-    const background = this.add
-      .image(0, 0, "background")
-      .setOrigin(0, 0)
-      .setTint(0x999999)
-      .setDepth(-6);
-    if (background.height > 0) {
-      const scale = GAME_HEIGHT / background.height;
-      background.setScale(scale);
-    }
-    this.parallax = new ParallaxBackgroundLayers(this, [
-      "backgroundParallax2",
-      "backgroundParallax3",
-      "backgroundParallax4",
-      "backgroundParallax5",
-    ]);
+    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.25).setOrigin(0, 0).setDepth(10);
 
     this.add
       .text(GAME_WIDTH / 2, 220, "Game Over", {
@@ -91,6 +75,8 @@ export class GameOverScene extends Phaser.Scene {
         return;
       }
       this.hasNavigated = true;
+      this.scene.stop("GameOverScene");
+      this.scene.stop("GameScene");
       this.scene.start("GameScene");
     });
     menu.on("pointerdown", () => {
@@ -98,6 +84,8 @@ export class GameOverScene extends Phaser.Scene {
         return;
       }
       this.hasNavigated = true;
+      this.scene.stop("GameOverScene");
+      this.scene.stop("GameScene");
       this.scene.start("MenuScene");
     });
 
@@ -106,12 +94,9 @@ export class GameOverScene extends Phaser.Scene {
         return;
       }
       this.hasNavigated = true;
+      this.scene.stop("GameOverScene");
+      this.scene.stop("GameScene");
       this.scene.start("GameScene");
     });
-  }
-
-  update(_time: number, delta: number): void {
-    const speed = GAMEPLAY.basePipeSpeed * 0.4;
-    this.parallax?.tick(speed, delta);
   }
 }

@@ -177,7 +177,8 @@ export class GameScene extends Phaser.Scene {
     this.music?.stop();
     this.cameras.main.shake(180, 0.01);
     this.time.delayedCall(450, () => {
-      this.scene.start("GameOverScene", { score: this.score });
+      this.scene.launch("GameOverScene", { score: this.score });
+      this.scene.pause();
     });
   }
 
