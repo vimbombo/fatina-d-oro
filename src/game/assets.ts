@@ -11,8 +11,8 @@ export const IMAGE_ASSETS = {
 
 export const AUDIO_ASSETS = {
   /** Suono battito ali (file presente in repo: `Set1.ogg`; rinomina o aggiungi `flap.ogg` se preferisci). */
-  flap: "assets/audio/flap.ogg",
+  flap: "assets/audio/flap.mp3",
   point: "assets/audio/point.ogg",
-  hit: "assets/audio/gameover.ogg",
+  hit: "assets/audio/gameover2.mp3",
   music: "assets/audio/CanzoneVerzino.ogg",
 } as const;

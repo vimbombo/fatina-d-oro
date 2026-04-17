@@ -6,7 +6,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:fairy": "vite --mode fairy",
     "build": "tsc --noEmit && vite build",
     "build:gh": "tsc --noEmit && GITHUB_PAGES=1 vite build",
     "preview": "vite preview"

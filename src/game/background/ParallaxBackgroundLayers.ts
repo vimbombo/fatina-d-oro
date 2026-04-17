@@ -5,11 +5,16 @@ type LayerConfig = {
   depth: number;
 };
 
+type ParallaxLayer = {
+  ratio: number;
+  period: number;
+  offset: number;
+  first: Phaser.GameObjects.Image;
+  second: Phaser.GameObjects.Image;
+};
+
 export class ParallaxBackgroundLayers {
-  private readonly layers: Phaser.GameObjects.TileSprite[];
-  private readonly debugEnabled = import.meta.env.DEV;
-  private lastDebugLogAt = 0;
-  private readonly lastTileX: number[] = [];
+  private readonly layers: ParallaxLayer[];
 
   constructor(private readonly scene: Phaser.Scene, textureKeys: string[]) {
     const baseDepth = -5;
@@ -19,71 +24,64 @@ export class ParallaxBackgroundLayers {
       depth: baseDepth + index + 1,
     }));
 
-    this.layers = configs.map(({ key, depth }) => {
-      const layer = this.scene.add
-        .tileSprite(0, 0, GAME_WIDTH, GAME_HEIGHT, key)
+    this.layers = configs.map(({ key, depth }, index) => {
+      const texture = this.scene.textures.get(key);
+      const frame = texture.get();
+      const sourceWidth = frame.width;
+      const sourceHeight = frame.height;
+      const scale = sourceHeight > 0 ? GAME_HEIGHT / sourceHeight : 1;
+      const period = sourceWidth > 0 ? sourceWidth * scale : GAME_WIDTH;
+      const ratio = PARALLAX_SPEED_RATIOS[index] ?? PARALLAX_SPEED_RATIOS[PARALLAX_SPEED_RATIOS.length - 1];
+
+      const first = this.scene.add
+        .image(0, 0, key)
         .setOrigin(0, 0)
+        .setScale(scale)
+        .setDepth(depth)
+        .setScrollFactor(0, 0);
+      const second = this.scene.add
+        .image(period, 0, key)
+        .setOrigin(0, 0)
+        .setScale(scale)
         .setDepth(depth)
         .setScrollFactor(0, 0);
 
-      // Uniform scale from texture height → one tile fills game height (no vertical repeat).
-      const fh = layer.frame.height;
-      if (fh > 0) {
-        const scale = GAME_HEIGHT / fh;
-        layer.setTileScale(scale, scale);
-      }
-
-      return layer;
+      return {
+        ratio,
+        period,
+        offset: 0,
+        first,
+        second,
+      };
     });
-    this.lastTileX.push(...this.layers.map((layer) => layer.tilePositionX));
   }
 
   tick(worldSpeed: number, deltaMs: number): void {
     const dt = deltaMs / 1000;
 
-    this.layers.forEach((layer, index) => {
-      const ratio = PARALLAX_SPEED_RATIOS[index] ?? PARALLAX_SPEED_RATIOS[PARALLAX_SPEED_RATIOS.length - 1];
-      const dx = worldSpeed * ratio * dt;
-      const prevX = this.lastTileX[index] ?? layer.tilePositionX;
-      layer.tilePositionX += dx;
-
-      // Let Phaser do UV wrapping internally (renderer uses modulo by frame width).
-      // Manual reset around `period` can introduce visible seam jumps at wrap points.
-      const period = layer.frame.width;
-      if (period <= 0) {
-        this.lastTileX[index] = layer.tilePositionX;
+    this.layers.forEach((layer) => {
+      const dx = worldSpeed * layer.ratio * dt;
+      if (layer.period <= 0) {
         return;
       }
-      const wraps = Math.floor(layer.tilePositionX / period) - Math.floor(prevX / period);
-      const expectedX = prevX + dx;
-      const drift = layer.tilePositionX - expectedX;
-      const now = this.scene.time.now;
-      const shouldSampleLog = now - this.lastDebugLogAt >= 500 && index === this.layers.length - 1;
-      const shouldJumpLog = Math.abs(drift) > 0.25 || Math.abs(deltaMs - 16.67) > 25;
-
-      if (this.debugEnabled && (wraps !== 0 || shouldJumpLog || shouldSampleLog)) {
-        if (shouldSampleLog) {
-          this.lastDebugLogAt = now;
-        }
-        console.info("[parallax-debug]", {
-          layerIndex: index + 2,
-          prevX: Number(prevX.toFixed(3)),
-          newX: Number(layer.tilePositionX.toFixed(3)),
-          dx: Number(dx.toFixed(3)),
-          wraps,
-          period,
-          deltaMs: Number(deltaMs.toFixed(2)),
-          drift: Number(drift.toFixed(5)),
-          worldSpeed: Number(worldSpeed.toFixed(2)),
-          ratio,
-        });
+      layer.offset += dx;
+      while (layer.offset >= layer.period) {
+        layer.offset -= layer.period;
       }
-
-      this.lastTileX[index] = layer.tilePositionX;
+      while (layer.offset < 0) {
+        layer.offset += layer.period;
+      }
+      layer.first.x = -layer.offset;
+      layer.first.y = 0;
+      layer.second.x = layer.first.x + layer.period;
+      layer.second.y = 0;
     });
   }
 
   destroy(): void {
-    this.layers.forEach((layer) => layer.destroy());
+    this.layers.forEach((layer) => {
+      layer.first.destroy();
+      layer.second.destroy();
+    });
   }
 }

@@ -21,7 +21,15 @@ export class GameOverScene extends Phaser.Scene {
     const score = data.score ?? 0;
     const best = ScoreStore.saveBestScore(score);
 
-    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "background").setTint(0x999999).setDepth(-6);
+    const background = this.add
+      .image(0, 0, "background")
+      .setOrigin(0, 0)
+      .setTint(0x999999)
+      .setDepth(-6);
+    if (background.height > 0) {
+      const scale = GAME_HEIGHT / background.height;
+      background.setScale(scale);
+    }
     this.parallax = new ParallaxBackgroundLayers(this, [
       "backgroundParallax2",
       "backgroundParallax3",

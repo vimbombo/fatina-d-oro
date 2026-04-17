@@ -15,11 +15,11 @@ const resolveBase = (): string => {
   return "/";
 };
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   base: resolveBase(),
   server: {
     port: 5173,
     host: true,
-    open: mode === "fairy" ? "/?scene=fairy" : false,
+    open: false,
   },
 }));
