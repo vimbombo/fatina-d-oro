@@ -60,7 +60,6 @@ export class GameScene extends Phaser.Scene {
       "backgroundParallax2",
       "backgroundParallax3",
       "backgroundParallax4",
-      "backgroundParallax5",
     ]);
     this.add.text(16, 16, "Fatina d'Oro", { fontSize: "24px", color: "#ffffff" }).setDepth(20);
 

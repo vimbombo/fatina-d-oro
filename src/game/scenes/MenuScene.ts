@@ -28,7 +28,6 @@ export class MenuScene extends Phaser.Scene {
       "backgroundParallax2",
       "backgroundParallax3",
       "backgroundParallax4",
-      "backgroundParallax5",
     ]);
 
     this.add

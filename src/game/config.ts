@@ -49,7 +49,7 @@ export const BACKGROUND_REVEAL_VISUALS = {
 } as const;
 
 /** Fattori di velocità per gli strati di parallax (dal più lontano al più vicino). */
-export const PARALLAX_SPEED_RATIOS = [0.12*2, 0.2*2, 0.32*2, 0.46*2] as const;
+export const PARALLAX_SPEED_RATIOS = [0.12*2, 0.2*2, 0.32*2] as const;
 
 /**
  * Larghezza hitbox dei tubi (px), centrata sullo sprite.
