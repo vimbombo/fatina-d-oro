@@ -1,5 +1,6 @@
 export const IMAGE_ASSETS = {
   fairy: "assets/images/fatina-volante2.png",
+  fatinaFront: "assets/images/fatina-front.png",
   pipe: "assets/images/SombreroAlto.png",
   vinyl: "assets/images/vinyl.png",
   background: "assets/bg/1.png",

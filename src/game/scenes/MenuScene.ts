@@ -31,7 +31,7 @@ export class MenuScene extends Phaser.Scene {
     ]);
 
     this.add
-      .text(GAME_WIDTH / 2, 200, "Fatina d'Oro", {
+      .text(GAME_WIDTH / 2, 100, "Fatina d'Oro", {
         fontSize: "58px",
         fontStyle: "bold",
         color: "#ffe28a",
@@ -41,6 +41,30 @@ export class MenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(20);
+
+      const fairyFront = this.add
+      .image(GAME_WIDTH / 2, 170, "fatinaFront")
+      .setOrigin(0.5)
+      .setDepth(21);
+    const maxFairyFrontWidth = 168;
+    fairyFront.setScale(2);
+    if (fairyFront.width > maxFairyFrontWidth) {
+      fairyFront.setScale(maxFairyFrontWidth / fairyFront.width);
+    }
+    this.add
+      .text(
+        GAME_WIDTH / 2,
+        fairyFront.y + fairyFront.displayHeight / 2 + 18,
+        "Aiuta la fatina a ricolorare il titolo",
+        {
+          fontSize: "20px",
+          color: "#fef4be",
+          align: "center",
+          wordWrap: { width: GAME_WIDTH - 48 },
+        },
+      )
+      .setOrigin(0.5, 0)
+      .setDepth(21);
 
     this.add
       .text(GAME_WIDTH / 2, 330, "Tocca o premi SPAZIO per volare", {
@@ -69,6 +93,8 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(22)
       .setInteractive({ useHandCursor: true });
+
+    
     const musicToggle = this.add
       .text(GAME_WIDTH / 2 - 110, GAME_HEIGHT - 42, "", {
         fontSize: "20px",

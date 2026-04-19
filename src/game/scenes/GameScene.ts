@@ -24,10 +24,12 @@ export class GameScene extends Phaser.Scene {
   private bottomPipes!: Phaser.Physics.Arcade.Group;
   private discs!: Phaser.Physics.Arcade.Group;
   private scoreText!: Phaser.GameObjects.Text;
-  private revealLineTexts: Phaser.GameObjects.Text[] = [];
+  private revealLineOffTexts: Phaser.GameObjects.Text[] = [];
+  private revealLineOnTexts: Phaser.GameObjects.Text[] = [];
   private revealLineRanges: Array<{ start: number; end: number }> = [];
-  private revealedCharIndices = new Set<number>();
-  private revealableCharIndices: number[] = [];
+  /** Global indices of non-space characters in reading order. */
+  private revealOrderIndices: number[] = [];
+  private revealCompletionAnimPlayed = false;
   private inputController!: InputController;
   private spawner!: Spawner;
   private difficulty = new DifficultySystem();
@@ -125,11 +127,15 @@ export class GameScene extends Phaser.Scene {
       this.inputController.destroy();
       this.parallax?.destroy();
       this.parallax = undefined;
-      this.revealLineTexts.forEach((line) => line.destroy());
-      this.revealLineTexts = [];
+      [...this.revealLineOffTexts, ...this.revealLineOnTexts].forEach((line) => {
+        this.tweens.killTweensOf(line);
+        line.destroy();
+      });
+      this.revealLineOffTexts = [];
+      this.revealLineOnTexts = [];
       this.revealLineRanges = [];
-      this.revealedCharIndices.clear();
-      this.revealableCharIndices = [];
+      this.revealOrderIndices = [];
+      this.revealCompletionAnimPlayed = false;
     });
   }
 
@@ -256,14 +262,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private showScorePopup(label: string, x: number, y: number): void {
+    const popupFont = {
+      fontSize: "34px",
+      fontStyle: "bold",
+      color: "#ffe17a",
+      stroke: "#3a2800",
+      strokeThickness: 5,
+    };
     const popup = this.add
-      .text(x, y, label, {
-        fontSize: "34px",
-        fontStyle: "bold",
-        color: "#ffe17a",
-        stroke: "#3a2800",
-        strokeThickness: 5,
-      })
+      .text(x, y, label, popupFont)
       .setOrigin(0.5)
       .setDepth(30);
     this.tweens.add({
@@ -314,63 +321,114 @@ export class GameScene extends Phaser.Scene {
   }
 
   private setupBackgroundReveal(): void {
-    this.revealedCharIndices.clear();
-    this.revealableCharIndices = [];
+    this.revealCompletionAnimPlayed = false;
+    this.revealOrderIndices = [];
     this.revealLineRanges = this.splitTextIntoThreeLines(GameScene.REVEAL_TEXT);
 
     for (let i = 0; i < GameScene.REVEAL_TEXT.length; i += 1) {
       if (GameScene.REVEAL_TEXT[i] !== " ") {
-        this.revealableCharIndices.push(i);
+        this.revealOrderIndices.push(i);
       }
     }
 
     const baseY = GAME_HEIGHT * BACKGROUND_REVEAL_VISUALS.baseYRatio;
-    this.revealLineTexts = this.revealLineRanges.map((_, index) =>
+    const yForLine = (index: number) => baseY + index * BACKGROUND_REVEAL_VISUALS.lineGapPx;
+    const textStyleBase = {
+      fontSize: `${BACKGROUND_REVEAL_VISUALS.fontSizePx}px`,
+      fontStyle: BACKGROUND_REVEAL_VISUALS.fontStyle,
+    } as const;
+
+    this.revealLineOffTexts = this.revealLineRanges.map((_, index) =>
       this.add
-        .text(GAME_WIDTH / 2, baseY + index * BACKGROUND_REVEAL_VISUALS.lineGapPx, "", {
-          fontSize: `${BACKGROUND_REVEAL_VISUALS.fontSizePx}px`,
-          fontStyle: BACKGROUND_REVEAL_VISUALS.fontStyle,
-          color: BACKGROUND_REVEAL_VISUALS.lineColors[index % BACKGROUND_REVEAL_VISUALS.lineColors.length],
-          stroke: BACKGROUND_REVEAL_VISUALS.strokeColor,
-          strokeThickness: BACKGROUND_REVEAL_VISUALS.strokeThickness,
+        .text(GAME_WIDTH / 2, yForLine(index), "", {
+          ...textStyleBase,
+          color: BACKGROUND_REVEAL_VISUALS.offFillColor,
+          stroke: BACKGROUND_REVEAL_VISUALS.offStrokeColor,
+          strokeThickness: BACKGROUND_REVEAL_VISUALS.offStrokeThickness,
         })
         .setOrigin(0.5)
         .setDepth(BACKGROUND_REVEAL_VISUALS.depth)
-        .setAlpha(BACKGROUND_REVEAL_VISUALS.alpha),
+        .setAlpha(BACKGROUND_REVEAL_VISUALS.offAlpha),
+    );
+
+    this.revealLineOnTexts = this.revealLineRanges.map((_, index) =>
+      this.add
+        .text(GAME_WIDTH / 2, yForLine(index), "", {
+          ...textStyleBase,
+          color: BACKGROUND_REVEAL_VISUALS.lineColors[index % BACKGROUND_REVEAL_VISUALS.lineColors.length],
+          stroke: BACKGROUND_REVEAL_VISUALS.onStrokeColor,
+          strokeThickness: BACKGROUND_REVEAL_VISUALS.onStrokeThickness,
+        })
+        .setOrigin(0.5)
+        .setDepth(BACKGROUND_REVEAL_VISUALS.depth + BACKGROUND_REVEAL_VISUALS.onDepthBias)
+        .setAlpha(BACKGROUND_REVEAL_VISUALS.onAlpha),
     );
 
     this.renderBackgroundReveal();
   }
 
   private updateBackgroundRevealFromScore(): void {
-    const targetVisible = Math.min(
-      Math.floor(this.score / GAMEPLAY.revealPointsPerChar),
-      this.revealableCharIndices.length,
-    );
-
-    while (this.revealedCharIndices.size < targetVisible) {
-      const candidates = this.revealableCharIndices.filter(
-        (index) => !this.revealedCharIndices.has(index),
-      );
-      if (candidates.length === 0) {
-        break;
-      }
-      const randomIndex = Phaser.Math.Between(0, candidates.length - 1);
-      this.revealedCharIndices.add(candidates[randomIndex]);
-    }
-
     this.renderBackgroundReveal();
   }
 
   private renderBackgroundReveal(): void {
+    const litNonSpaceCount = Math.min(
+      Math.floor(this.score / GAMEPLAY.revealPointsPerChar),
+      this.revealOrderIndices.length,
+    );
+    const litGlobalIndices = new Set(this.revealOrderIndices.slice(0, litNonSpaceCount));
+
     this.revealLineRanges.forEach((range, lineIndex) => {
-      const revealedLineChars: string[] = [];
+      const offChars: string[] = [];
+      const onChars: string[] = [];
       for (let i = range.start; i < range.end; i += 1) {
         const char = GameScene.REVEAL_TEXT[i];
-        const isVisible = this.revealedCharIndices.has(i);
-        revealedLineChars.push(isVisible ? char : " ");
+        offChars.push(char);
+        if (char === " ") {
+          onChars.push(" ");
+        } else {
+          onChars.push(litGlobalIndices.has(i) ? char : " ");
+        }
       }
-      this.revealLineTexts[lineIndex]?.setText(revealedLineChars.join(""));
+      const line = offChars.join("");
+      this.revealLineOffTexts[lineIndex]?.setText(line);
+      this.revealLineOnTexts[lineIndex]?.setText(onChars.join(""));
+    });
+
+    const isComplete =
+      this.revealOrderIndices.length > 0 && litNonSpaceCount >= this.revealOrderIndices.length;
+    if (isComplete && !this.revealCompletionAnimPlayed) {
+      this.revealCompletionAnimPlayed = true;
+      this.playRevealCompleteAnimation();
+    }
+  }
+
+  private playRevealCompleteAnimation(): void {
+    const staggerMs = 70;
+    const durationMs = 240*2;
+    const peakScaleX = 1.08;
+    const peakScaleY = 1.52;
+
+    this.revealLineRanges.forEach((_, lineIndex) => {
+      const off = this.revealLineOffTexts[lineIndex];
+      const on = this.revealLineOnTexts[lineIndex];
+      if (!off || !on) {
+        return;
+      }
+      this.tweens.add({
+        targets: [off, on],
+        scaleX: peakScaleX,
+        scaleY: peakScaleY,
+        duration: durationMs,
+        delay: lineIndex * staggerMs,
+        ease: "Sine.easeOut",
+        yoyo: true,
+        hold: 0,
+        onComplete: () => {
+          off.setScale(1);
+          on.setScale(1);
+        },
+      });
     });
   }
 

@@ -33,19 +33,28 @@ export const GAMEPLAY = {
   discVerticalMarginPx: 26,
   difficultyIntervalMs: 11000,
   maxSpeedBonus: 115,
-  revealPointsPerChar: 10,
+  revealPointsPerChar: 1,
 };
 
 export const BACKGROUND_REVEAL_VISUALS = {
+  /** Per-line fill for the lit (“neon on”) overlay. */
   lineColors: ["#ff8fab", "#ffd670", "#86b6ff"] as const,
   baseYRatio: 0.14,
   lineGapPx: 92,
   fontSizePx: 68,
   fontStyle: "bold",
-  strokeColor: "#3a2a20",
-  strokeThickness: 2,
-  alpha: 0.86,
+  /** Depth for the dim full-line layer (between parallax2 and parallax3: -4 … -3). */
   depth: -3.5,
+  /** Dim “neon off” full phrase (bottom layer). */
+  offFillColor: "#5a6578",
+  offStrokeColor: "#2a323d",
+  offStrokeThickness: 1,
+  offAlpha: 0.42,
+  /** Bright “neon on” overlay (top layer; unlit slots are spaces so off shows through). */
+  onStrokeColor: "#fff8e7",
+  onStrokeThickness: 4,
+  onAlpha: 0.92,
+  onDepthBias: 0.01,
 } as const;
 
 /** Fattori di velocità per gli strati di parallax (dal più lontano al più vicino). */
