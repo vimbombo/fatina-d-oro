@@ -33,7 +33,7 @@ export const GAMEPLAY = {
   discVerticalMarginPx: 26,
   difficultyIntervalMs: 11000,
   maxSpeedBonus: 115,
-  revealPointsPerChar: 1,
+  revealPointsPerChar: 10,
 };
 
 export const BACKGROUND_REVEAL_VISUALS = {
