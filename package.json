@@ -1,6 +1,6 @@
 {
   "name": "fatina-d-oro",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Fatina d'Oro - Phaser game inspired by Flappy Bird",
   "private": true,
   "type": "module",

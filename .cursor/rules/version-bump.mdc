@@ -1,0 +1,34 @@
+---
+description: Bump app version in package.json after every code change
+alwaysApply: true
+---
+
+# Version bump on changes
+
+When you modify any project files in this repo (source, assets, config, etc.), bump the app version **once per task** before finishing.
+
+## Source of truth
+
+- `package.json` → `"version"` (semver `MAJOR.MINOR.PATCH`)
+- UI reads it via `import packageJson from "../../../package.json"` in `MenuScene` — do not hardcode the version elsewhere.
+
+## How to bump
+
+1. Read the current version from `package.json`.
+2. Increment **PATCH** by 1 (e.g. `0.1.0` → `0.1.1`).
+3. Update the same version in `package-lock.json` in both places:
+   - root `"version"`
+   - `packages[""].version`
+4. Bump only **once** per agent task, even if many files changed.
+
+Use **MINOR** or **MAJOR** only when the user explicitly asks for a larger release bump.
+
+## When to skip
+
+- No project files were changed (questions, docs-only if the user did not ask for a bump).
+- The **only** change in the task was already updating the version.
+- The user explicitly says not to bump the version.
+
+## Example
+
+After fixing gameplay in `GameScene.ts`, if `package.json` has `"version": "0.1.3"`, set it to `"0.1.4"` and sync `package-lock.json` to `0.1.4`.

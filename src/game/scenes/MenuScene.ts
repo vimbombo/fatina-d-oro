@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import packageJson from "../../../package.json";
 import {
   GAME_HEIGHT,
   GAME_WIDTH,
@@ -156,6 +157,14 @@ export class MenuScene extends Phaser.Scene {
       AudioSettingsStore.toggleSfxMuted();
       refreshAudioButtons();
     });
+
+    this.add
+      .text(GAME_WIDTH - 12, GAME_HEIGHT - 12, `v${packageJson.version}`, {
+        fontSize: "14px",
+        color: "#fef4be",
+      })
+      .setOrigin(1, 1)
+      .setDepth(20);
 
     const goToGame = () => {
       if (this.hasNavigated) {
