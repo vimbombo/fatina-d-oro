@@ -31,7 +31,8 @@ Se alcuni file mancano, il gioco usa texture di fallback.
 
 ## Build
 
-- itch.io / hosting statico generico: `npm run build`
+- itch.io: `npm run build:itch` — crea `fatina-d-oro-itch.zip` (path relativi `./assets/...`). Caricalo come progetto **HTML** su itch.io e spunta “This file will be played in the browser”.
+- hosting statico locale / generico: `npm run build` (base `/`)
 - GitHub Pages: `npm run build:gh`
 
 Per GitHub Pages il path base viene impostato automaticamente a `/fatina-d-oro/`.

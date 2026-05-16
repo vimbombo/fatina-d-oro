@@ -1,6 +1,11 @@
 import { defineConfig } from "vite";
 
 const resolveBase = (): string => {
+  // Relative paths for itch.io HTML uploads (embedded player / CDN).
+  if (process.env.ITCH === "1") {
+    return "./";
+  }
+
   // In GitHub Actions for Pages, derive /<repo>/ from GITHUB_REPOSITORY.
   if (process.env.GITHUB_ACTIONS === "true") {
     const repo = process.env.GITHUB_REPOSITORY?.split("/")[1];

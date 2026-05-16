@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:gh": "tsc --noEmit && GITHUB_PAGES=1 vite build",
+    "build:itch": "tsc --noEmit && ITCH=1 vite build && node scripts/zip-itch.mjs",
     "preview": "vite preview"
   },
   "keywords": [
