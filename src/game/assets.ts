@@ -1,3 +1,6 @@
+export type ImageAssetKey = keyof typeof IMAGE_ASSETS;
+export type AudioAssetKey = keyof typeof AUDIO_ASSETS;
+
 export const IMAGE_ASSETS = {
   fairy: "assets/images/fatina-volante2.png",
   fatinaFront: "assets/images/fatina-front.png",

@@ -22,7 +22,7 @@ export class Spawner {
     this.nextDiscAtPipeCount = this.randomDiscThreshold(this.spawnedPipesCount);
   }
 
-  spawn(gap: number, speed: number): void {
+  spawn(gap: number): void {
     const centerY = Phaser.Math.Between(220, GAME_HEIGHT - 220);
     const topY = centerY - gap / 2;
     const bottomY = centerY + gap / 2;
@@ -53,8 +53,8 @@ export class Spawner {
     narrowPipeCollider(top);
     narrowPipeCollider(bottom);
 
-    top.setVelocity(-speed, 0);
-    bottom.setVelocity(-speed, 0);
+    top.setVelocity(0, 0);
+    bottom.setVelocity(0, 0);
     this.spawnedPipesCount += 1;
     const shouldSpawnDisc = this.spawnedPipesCount >= this.nextDiscAtPipeCount;
 
@@ -70,19 +70,20 @@ export class Spawner {
       this.discGroup.add(disc);
       const discBody = disc.body as Phaser.Physics.Arcade.Body | null;
       discBody?.setAllowGravity(false);
-      disc.setVelocity(-speed, 0);
+      disc.setVelocity(0, 0);
       this.nextDiscAtPipeCount = this.randomDiscThreshold(this.spawnedPipesCount);
     }
 
     this.pairs.push({ top, bottom, disc, scored: false });
   }
 
-  update(speed: number, fairyX: number): number {
+  update(speed: number, fairyX: number, deltaMs: number): number {
+    const dx = speed * (deltaMs / 1000);
     let points = 0;
     this.pairs = this.pairs.filter((pair) => {
-      pair.top.setVelocityX(-speed);
-      pair.bottom.setVelocityX(-speed);
-      pair.disc?.setVelocityX(-speed);
+      pair.top.x -= dx;
+      pair.bottom.x -= dx;
+      pair.disc?.setX(pair.disc.x - dx);
 
       if (!pair.scored && pair.top.x < fairyX) {
         pair.scored = true;

@@ -1,5 +1,11 @@
 import Phaser from "phaser";
-import { GAME_HEIGHT, GAME_WIDTH, GAMEPLAY, START_SCENE_MUSIC_VOLUME } from "../config";
+import {
+  GAME_HEIGHT,
+  GAME_WIDTH,
+  GAMEPLAY,
+  MAX_FRAME_DELTA_MS,
+  START_SCENE_MUSIC_VOLUME,
+} from "../config";
 import { resumeWebAudioFromUserGesture } from "../resumeWebAudio";
 import { AudioSettingsStore } from "../state/AudioSettingsStore";
 import { ScoreStore } from "../state/ScoreStore";
@@ -173,7 +179,7 @@ export class MenuScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     const speed = GAMEPLAY.basePipeSpeed * 0.6;
-    this.parallax?.tick(speed, delta);
+    this.parallax?.tick(speed, Math.min(delta, MAX_FRAME_DELTA_MS));
   }
 
   private tryStartMusic(): void {

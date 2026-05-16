@@ -14,6 +14,8 @@ export const GAME_CONFIG: Phaser.Types.Core.GameConfig = {
     arcade: {
       gravity: { x: 0, y: 1400 },
       debug: false,
+      // Variable timestep: fixed 60 Hz physics slows the whole game when FPS dips (e.g. at startup).
+      fixedStep: false,
     },
   },
   scale: {
@@ -22,9 +24,15 @@ export const GAME_CONFIG: Phaser.Types.Core.GameConfig = {
   },
 };
 
+/** Clamp per-frame delta (ms) so a long hitch does not teleport obstacles. */
+export const MAX_FRAME_DELTA_MS = 50;
+
 export const GAMEPLAY = {
   flapVelocity: -440,
+  /** Horizontal scroll speed for pipes, discs, and parallax (px/s). */
   basePipeSpeed: 190,
+  /** Fairy nose-down rotation when not flapping (deg/s). */
+  fairyTiltSpeed: 84,
   basePipeGap: 235,
   minPipeGap: 170,
   pipeSpawnMs: 1500,

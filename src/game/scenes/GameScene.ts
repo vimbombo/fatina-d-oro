@@ -7,6 +7,7 @@ import {
   GAME_HEIGHT,
   GAME_WIDTH,
   GAMEPLAY,
+  MAX_FRAME_DELTA_MS,
   MUSIC_VOLUME,
 } from "../config";
 import { InputController } from "../input/InputController";
@@ -144,6 +145,9 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    const frameDelta = Math.min(delta, MAX_FRAME_DELTA_MS);
+    const dt = frameDelta / 1000;
+
     if (this.inputController.consumePress()) {
       this.fairy.setVelocityY(GAMEPLAY.flapVelocity);
       this.fairy.setAngle(-15);
@@ -155,22 +159,24 @@ export class GameScene extends Phaser.Scene {
         // Ignore optional audio errors when assets are missing.
       }
     } else {
-      this.fairy.setAngle(Math.min(this.fairy.angle + 1.4, 70));
+      this.fairy.setAngle(
+        Math.min(this.fairy.angle + GAMEPLAY.fairyTiltSpeed * dt, 70),
+      );
     }
 
-    this.spawnTimer += delta;
+    this.spawnTimer += frameDelta;
     const elapsed = this.time.now - this.gameStartedAt;
     const speed = GAMEPLAY.basePipeSpeed + this.difficulty.getSpeedBonus(elapsed);
     const gap = this.difficulty.getPipeGap(elapsed);
 
-    this.parallax?.tick(speed, delta);
+    this.parallax?.tick(speed, frameDelta);
 
     if (this.spawnTimer >= GAMEPLAY.pipeSpawnMs) {
       this.spawnTimer = 0;
-      this.spawner.spawn(gap, speed);
+      this.spawner.spawn(gap);
     }
 
-    const newPoints = this.spawner.update(speed, this.fairy.x);
+    const newPoints = this.spawner.update(speed, this.fairy.x, frameDelta);
     if (newPoints > 0) {
       this.addScore(newPoints);
       try {
