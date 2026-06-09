@@ -1,11 +1,13 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const distDir = join(root, "dist");
 const indexHtml = join(distDir, "index.html");
-const zipPath = join(root, "fatina-d-oro-itch.zip");
+const { version } = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+const zipName = `fatina-d-oro-${version}-itch.zip`;
+const zipPath = join(root, zipName);
 
 if (!existsSync(indexHtml)) {
   console.error("[build:itch] dist/index.html not found. Run the Vite build first.");
