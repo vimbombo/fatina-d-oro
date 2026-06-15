@@ -5,6 +5,7 @@ import {
   GAME_WIDTH,
   GAMEPLAY,
   MAX_FRAME_DELTA_MS,
+  MENU_TEXT_STROKE,
   START_SCENE_MUSIC_VOLUME,
 } from "../config";
 import { resumeWebAudioFromUserGesture } from "../resumeWebAudio";
@@ -42,7 +43,7 @@ export class MenuScene extends Phaser.Scene {
         fontSize: "58px",
         fontStyle: "bold",
         color: "#ffe28a",
-        stroke: "#8a5b00",
+        stroke: MENU_TEXT_STROKE.color,
         strokeThickness: 8,
         align: "center",
       })
@@ -66,6 +67,8 @@ export class MenuScene extends Phaser.Scene {
         {
           fontSize: "20px",
           color: "#fef4be",
+          stroke: MENU_TEXT_STROKE.color,
+          strokeThickness: 3,
           align: "center",
           wordWrap: { width: GAME_WIDTH - 48 },
         },
@@ -77,6 +80,8 @@ export class MenuScene extends Phaser.Scene {
       .text(GAME_WIDTH / 2, 330, "Tocca o premi SPAZIO per volare", {
         fontSize: "26px",
         color: "#ffffff",
+        stroke: MENU_TEXT_STROKE.color,
+        strokeThickness: 4,
       })
       .setOrigin(0.5)
       .setDepth(20);
@@ -85,6 +90,8 @@ export class MenuScene extends Phaser.Scene {
       .text(GAME_WIDTH / 2, 390, `Miglior punteggio: ${ScoreStore.getBestScore()}`, {
         fontSize: "28px",
         color: "#fef4be",
+        stroke: MENU_TEXT_STROKE.color,
+        strokeThickness: 4,
       })
       .setOrigin(0.5)
       .setDepth(20);
@@ -94,6 +101,8 @@ export class MenuScene extends Phaser.Scene {
         fontSize: "44px",
         fontStyle: "bold",
         color: "#ffffff",
+        stroke: MENU_TEXT_STROKE.color,
+        strokeThickness: 5,
         backgroundColor: "#e38a2d",
         padding: { x: 22, y: 10 },
       })
@@ -106,6 +115,8 @@ export class MenuScene extends Phaser.Scene {
       .text(GAME_WIDTH / 2 - 110, GAME_HEIGHT - 42, "", {
         fontSize: "20px",
         color: "#ffffff",
+        stroke: MENU_TEXT_STROKE.color,
+        strokeThickness: 3,
         backgroundColor: "#36576f",
         padding: { x: 10, y: 6 },
       })
@@ -116,6 +127,8 @@ export class MenuScene extends Phaser.Scene {
       .text(GAME_WIDTH / 2 + 110, GAME_HEIGHT - 42, "", {
         fontSize: "20px",
         color: "#ffffff",
+        stroke: MENU_TEXT_STROKE.color,
+        strokeThickness: 3,
         backgroundColor: "#36576f",
         padding: { x: 10, y: 6 },
       })
@@ -162,6 +175,8 @@ export class MenuScene extends Phaser.Scene {
       .text(GAME_WIDTH - 12, GAME_HEIGHT - 12, `v${packageJson.version}`, {
         fontSize: "14px",
         color: "#fef4be",
+        stroke: MENU_TEXT_STROKE.color,
+        strokeThickness: 2,
       })
       .setOrigin(1, 1)
       .setDepth(20);

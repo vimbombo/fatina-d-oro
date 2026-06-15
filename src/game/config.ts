@@ -76,6 +76,11 @@ export const PARALLAX_SPEED_RATIOS = [0.12*2, 0.2*2, 0.32*2] as const;
  */
 export const PIPE_COLLIDER_WIDTH = 20;
 
+/** Outline grigio scuro per i testi del menu. */
+export const MENU_TEXT_STROKE = {
+  color: "#2d3238",
+} as const;
+
 /** Volume solo per l’asset `music` (0 = muto, 1 = massimo). Gli SFX sono impostati in `GameScene`. */
 export const MUSIC_VOLUME = 0.65;
 /** Volume per l’asset `startmusic` nelle scene Menu e GameOver (0 = muto, 1 = massimo). */
